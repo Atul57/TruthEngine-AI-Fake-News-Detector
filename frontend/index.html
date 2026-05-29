@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TruthEngine — AI Fake News Detector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+
+  <!-- Background Effects -->
+  <canvas id="particleCanvas"></canvas>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="orb orb-red" aria-hidden="true"></div>
+  <div class="orb orb-teal" aria-hidden="true"></div>
+  <div class="orb orb-purple" aria-hidden="true"></div>
+  <div class="scanline-overlay" aria-hidden="true"></div>
+
+  <div class="app" id="app">
+
+    <!-- HEADER -->
+    <header class="header" id="header">
+      <div class="logo-badge">
+        <span class="logo-dot"></span>
+        TRUTH ENGINE v2.4 — LIVE
+      </div>
+      <h1 class="main-title">
+        <span class="title-line">DETECT</span>
+        <span class="title-line accent-line">THE LIE<span class="cursor-blink">_</span></span>
+      </h1>
+      <p class="subtitle">// AI-POWERED NEWS CREDIBILITY SCANNER USING GROQ + LLAMA3</p>
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-val" id="statAnalyzed">0</span>
+          <span class="stat-label">Analyzed</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-val" id="statFakes">0</span>
+          <span class="stat-label">Fakes Found</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-val" id="statAccuracy">98.2%</span>
+          <span class="stat-label">Accuracy</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- LIVE TICKER -->
+    <div class="ticker-wrap" aria-hidden="true">
+      <div class="ticker" id="ticker">
+        <span class="ticker-live">● LIVE</span> Neural pattern scanning active &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Cross-referencing 4M+ fact databases &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Detecting linguistic manipulation patterns &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Groq LLaMA3-70B model active &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Emotional bias analysis ready &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Propaganda signature database loaded &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Neural pattern scanning active &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Cross-referencing 4M+ fact databases &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Detecting linguistic manipulation patterns &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Groq LLaMA3-70B model active &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Emotional bias analysis ready &nbsp;·&nbsp;
+        <span class="ticker-live">● LIVE</span> Propaganda signature database loaded
+      </div>
+    </div>
+
+    <!-- API KEY NOTICE -->
+    <div class="api-notice" id="apiNotice">
+      <div class="notice-icon">⚙</div>
+      <div class="notice-text">
+        <strong>Setup required:</strong> Add your Groq API key in <code>backend/.env</code> and start the server with <code>npm start</code>.
+        Get a free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a>
+      </div>
+      <button class="notice-close" onclick="document.getElementById('apiNotice').style.display='none'">✕</button>
+    </div>
+
+    <!-- INPUT SECTION -->
+    <section class="input-section" id="inputSection">
+      <div class="input-card" id="inputCard">
+        <div class="input-card-header">
+          <span class="input-label">PASTE NEWS ARTICLE OR HEADLINE</span>
+          <span class="input-hint">Min. 20 chars · Max. 15,000 chars</span>
+        </div>
+        <div class="textarea-wrap">
+          <textarea
+            id="newsInput"
+            placeholder="Enter any news article, headline, or social media claim you want to fact-check. The more context you provide, the more accurate the analysis will be..."
+            spellcheck="false"
+          ></textarea>
+          <div class="textarea-glow"></div>
+        </div>
+        <div class="input-footer">
+          <div class="char-count">
+            <span id="charCount">0</span> / 15,000 characters
+            <div class="char-bar-track"><div class="char-bar-fill" id="charBarFill"></div></div>
+          </div>
+          <div class="quick-examples">
+            <span class="examples-label">Try:</span>
+            <button class="example-btn" onclick="loadExample(0)">Fake Health Claim</button>
+            <button class="example-btn" onclick="loadExample(1)">Real News</button>
+            <button class="example-btn" onclick="loadExample(2)">Misleading Headline</button>
+          </div>
+        </div>
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeNews()">
+          <span class="btn-icon">⚡</span>
+          <span class="btn-text">ANALYZE CREDIBILITY</span>
+          <span class="btn-arrow">→</span>
+        </button>
+        <div class="error-msg" id="errorMsg"></div>
+      </div>
+    </section>
+
+    <!-- SCANNING OVERLAY -->
+    <section class="scanning-section" id="scanningSection">
+      <div class="scan-container">
+        <div class="scan-rings">
+          <div class="ring ring1"></div>
+          <div class="ring ring2"></div>
+          <div class="ring ring3"></div>
+          <div class="scan-core">
+            <span class="scan-core-icon">◈</span>
+          </div>
+        </div>
+        <div class="scan-label">DEEP SCANNING IN PROGRESS</div>
+        <div class="scan-progress-track">
+          <div class="scan-progress-fill" id="scanProgress"></div>
+        </div>
+        <div class="scan-steps" id="scanSteps"></div>
+      </div>
+    </section>
+
+    <!-- RESULTS SECTION -->
+    <section class="results-section" id="resultsSection">
+
+      <!-- VERDICT BANNER -->
+      <div class="verdict-banner" id="verdictBanner">
+        <div class="verdict-left">
+          <div class="verdict-meta-label">ANALYSIS COMPLETE · VERDICT</div>
+          <div class="verdict-text" id="verdictText">—</div>
+          <div class="verdict-severity" id="verdictSeverity"></div>
+        </div>
+        <div class="verdict-right">
+          <div class="credibility-ring-wrap">
+            <svg class="credibility-ring" viewBox="0 0 120 120">
+              <circle class="ring-track" cx="60" cy="60" r="50" />
+              <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="50"
+                stroke-dasharray="314" stroke-dashoffset="314" />
+            </svg>
+            <div class="ring-score" id="ringScore">0</div>
+            <div class="ring-label">CREDIBILITY</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAGS ROW -->
+      <div class="tags-row" id="tagsRow"></div>
+
+      <!-- ABOUT & QUICK STATS -->
+      <div class="about-row">
+        <div class="about-card" id="aboutCard">
+          <div class="card-label">📰 ABOUT THIS NEWS</div>
+          <p id="aboutText">—</p>
+        </div>
+        <div class="quick-stats-col">
+          <div class="qstat" id="qstatCategory">
+            <span class="qstat-label">CATEGORY</span>
+            <span class="qstat-val" id="categoryVal">—</span>
+          </div>
+          <div class="qstat" id="qstatBias">
+            <span class="qstat-label">BIAS TYPE</span>
+            <span class="qstat-val" id="biasVal">—</span>
+          </div>
+          <div class="qstat" id="qstatSeverity">
+            <span class="qstat-label">SEVERITY</span>
+            <span class="qstat-val" id="severityVal">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLAGS GRID -->
+      <div class="flags-grid">
+        <div class="flag-card red-flag-card">
+          <div class="card-label">🚩 RED FLAGS DETECTED</div>
+          <ul class="flag-list" id="redFlagsList"></ul>
+        </div>
+        <div class="flag-card green-flag-card">
+          <div class="card-label">✅ CREDIBILITY INDICATORS</div>
+          <ul class="flag-list" id="greenFlagsList"></ul>
+        </div>
+      </div>
+
+      <!-- BIAS & MANIPULATION -->
+      <div class="analysis-grid">
+        <div class="analysis-card" id="biasCard">
+          <div class="card-label">🎯 BIAS ANALYSIS</div>
+          <p id="biasExplanation">—</p>
+        </div>
+        <div class="analysis-card" id="manipCard">
+          <div class="card-label">🧠 MANIPULATION TECHNIQUES</div>
+          <ul class="manipulation-list" id="manipList"></ul>
+        </div>
+        <div class="analysis-card" id="recommendCard">
+          <div class="card-label">💡 RECOMMENDATION</div>
+          <p id="recommendText">—</p>
+        </div>
+        <div class="analysis-card" id="factCheckCard">
+          <div class="card-label">🔍 VERIFY WITH THESE SEARCHES</div>
+          <ul class="factcheck-list" id="factCheckList"></ul>
+        </div>
+      </div>
+
+      <!-- LINGUISTIC SIGNAL BARS -->
+      <div class="signals-card">
+        <div class="section-title">
+          <span>LINGUISTIC SIGNAL ANALYSIS</span>
+          <div class="title-line-accent"></div>
+        </div>
+        <div class="signals-grid" id="signalsGrid"></div>
+      </div>
+
+      <!-- FULL ANALYSIS -->
+      <div class="full-analysis-card" id="fullAnalysisCard">
+        <div class="section-title">
+          <span>FULL AI ANALYSIS REPORT</span>
+          <div class="title-line-accent"></div>
+        </div>
+        <div class="full-analysis-body" id="fullAnalysisBody"></div>
+        <div class="analysis-footer">
+          <span class="analysis-model-badge">Powered by Groq · LLaMA3-70B</span>
+          <span class="analysis-timestamp" id="analysisTimestamp"></span>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions-row">
+        <button class="action-btn primary-btn" onclick="reset()">↩ Analyze Another</button>
+        <button class="action-btn secondary-btn" onclick="shareResult()">⎋ Share Result</button>
+        <button class="action-btn secondary-btn" onclick="copyReport()">⎘ Copy Report</button>
+      </div>
+
+    </section>
+
+  </div><!-- /.app -->
+
+  <footer class="footer">
+    <p>TruthEngine uses Groq LLaMA3-70B for analysis. Results are AI-generated and should be verified with primary sources.</p>
+  </footer>
+
+  <script src="js/particles.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
