@@ -27,7 +27,7 @@ fake-news-detector/
 
 ---
 
-## 🚀 Quick Start
+
 
 ### 1. Get a Free Groq API Key
 
